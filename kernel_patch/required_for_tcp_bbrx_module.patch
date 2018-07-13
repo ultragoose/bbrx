@@ -1,0 +1,65 @@
+From 1af9124f1f56297b08fb47d2cbc9dabc407176d8 Mon Sep 17 00:00:00 2001
+From: Jae Chung <ultragoose@gmail.com>
+Date: Fri, 13 Jul 2018 13:50:39 -0400
+Subject: [PATCH] Required for tcp_bbrx module
+
+---
+ include/net/inet_connection_sock.h |  4 ++--
+ include/uapi/linux/inet_diag.h     | 16 ++++++++++++++++
+ 2 files changed, 18 insertions(+), 2 deletions(-)
+
+diff --git a/include/net/inet_connection_sock.h b/include/net/inet_connection_sock.h
+index 0358745ea059..8ca314ba6a21 100644
+--- a/include/net/inet_connection_sock.h
++++ b/include/net/inet_connection_sock.h
+@@ -136,8 +136,8 @@ struct inet_connection_sock {
+ 	} icsk_mtup;
+ 	u32			  icsk_user_timeout;
+ 
+-	u64			  icsk_ca_priv[88 / sizeof(u64)];
+-#define ICSK_CA_PRIV_SIZE      (11 * sizeof(u64))
++	u64			  icsk_ca_priv[104 / sizeof(u64)];
++#define ICSK_CA_PRIV_SIZE      (13 * sizeof(u64))
+ };
+ 
+ #define ICSK_TIME_RETRANS	1	/* Retransmit timer */
+diff --git a/include/uapi/linux/inet_diag.h b/include/uapi/linux/inet_diag.h
+index 817d807e9481..3297d9ab4d60 100644
+--- a/include/uapi/linux/inet_diag.h
++++ b/include/uapi/linux/inet_diag.h
+@@ -145,6 +145,7 @@ enum {
+ 	INET_DIAG_BBRINFO,
+ 	INET_DIAG_CLASS_ID,
+ 	INET_DIAG_MD5SIG,
++	INET_DIAG_BBRXINFO,
+ 	__INET_DIAG_MAX,
+ };
+ 
+@@ -189,9 +190,24 @@ struct tcp_bbr_info {
+ 	__u32	bbr_cwnd_gain;		/* cwnd gain shifted left 8 bits */
+ };
+ 
++/* INET_DIAG_BBRXINFO */
++
++struct tcp_bbrx_info {
++	/* u64 bw: max-filtered BW (app throughput) estimate in Byte per sec: */
++	__u32	bbrx_bw_lo;		/* lower 32 bits of bw */
++	__u32	bbrx_bw_hi;		/* upper 32 bits of bw */
++	__u32	bbrx_min_rtt;		/* min-filtered RTT in uSec */
++	__u32	bbrx_brst_len;		/* burst duration in mSec */
++	__u32	bbrx_brst_tput;		/* KBytes per sec during burst */
++	__u32	bbrx_brst_ploss;	/* packet loss rate x 1000 */
++	__u8	bbrx_brst_k;		/* param k used during burst */
++	__u8	bbrx_brst_beta;		/* param beta used during burst */
++};
++
+ union tcp_cc_info {
+ 	struct tcpvegas_info	vegas;
+ 	struct tcp_dctcp_info	dctcp;
+ 	struct tcp_bbr_info	bbr;
++	struct tcp_bbrx_info	bbrx;
+ };
+ #endif /* _UAPI_INET_DIAG_H_ */
+-- 
+2.17.1
+
